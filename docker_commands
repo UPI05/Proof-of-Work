@@ -1,0 +1,2 @@
+docker build -t pow .
+docker run -p 5678:5678 pow
