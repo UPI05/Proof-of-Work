@@ -1,4 +1,3 @@
-from Blockchain.Transaction import Transaction
 import time
 import json
 import hashlib
@@ -10,13 +9,17 @@ class Block():
         self.__nOnce = 0
         self.__producer = ""
         self.__signature = ""
-        self.__timestamp = time.time()
+        self.__timestamp = 0
     
-    def create(self, txs_list, preHash, nOnce, producer):
+    def create(self, txs_list, preHash, nOnce, producer, timestamp):
         self.__txs_list = txs_list
         self.__preHash = preHash
         self.__producer = producer
         self.__nOnce = nOnce
+        self.__timestamp = timestamp
+
+    def genesis(self):
+        self.create(['0x0123'], '0x4567', '0x89ab', '0xcdef', '0x0000')
 
     def getBlock(self):
         return json.dumps({
@@ -37,3 +40,7 @@ class Block():
 
     def getSignature(self):
         return self.__signature
+    
+    # Kiểm tra format của block. Khác với verify bên wallet (kiểm tra mật mã).
+    def validateBlock():
+        pass

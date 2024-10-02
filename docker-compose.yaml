@@ -2,7 +2,7 @@ services:
   node1:
     build:
       context: .
-      dockerfile: Dockerfile  # Chỉ định Dockerfile
+      dockerfile: Dockerfile
     networks:
       my_network:
         ipv4_address: 192.168.8.242  # Địa chỉ IP cho node1
@@ -12,7 +12,7 @@ services:
   node2:
     build:
       context: .
-      dockerfile: Dockerfile  # Chỉ định Dockerfile
+      dockerfile: Dockerfile
     networks:
       my_network:
         ipv4_address: 192.168.8.243  # Địa chỉ IP cho node2
@@ -22,7 +22,7 @@ services:
   node3:
     build:
       context: .
-      dockerfile: Dockerfile  # Chỉ định Dockerfile
+      dockerfile: Dockerfile
     networks:
       my_network:
         ipv4_address: 192.168.8.244  # Địa chỉ IP cho node3

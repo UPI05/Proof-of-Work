@@ -4,7 +4,7 @@ import ipaddress
 from P2pNetwork.TransactionPool import TransactionPool
 
 class PeerToPeer(TransactionPool):
-    def __init__(self, max_hosts=5, host='0.0.0.0', subnet='192.168.8.240/28', port=5678):
+    def __init__(self, max_hosts=5, chain=None, host='0.0.0.0', subnet='192.168.8.240/28', port=5678):
         super().__init__()
         self.__host = host
         self.__port = port
@@ -12,6 +12,8 @@ class PeerToPeer(TransactionPool):
         self.__lock = threading.Lock()
         self.__max_hosts = max_hosts
         self.__subnet = subnet
+
+        self.__chain = chain
             
         # Start listening thread
         self.listener_thread = threading.Thread(target=self._listen_for_connections)
@@ -55,11 +57,18 @@ class PeerToPeer(TransactionPool):
     def _handle_peer(self, conn):
         while True:
             try:
-                message = conn.recv(1024).decode()
+                message = conn.recv(10000).decode()
                 if message:
                     if 'producer' in message:
-                        print(message)
-                        print('block')
+                        # Verify signature ...
+                        # code here
+                        self.__lock.acquire()
+                        if self.__chain.addBlock(message):
+                            print('Block received!')
+                            # We also need to delete these txs from txs pool
+
+                        self.__lock.release()
+
                     else:
                         self.addTxs(message) # To pool
                 else:

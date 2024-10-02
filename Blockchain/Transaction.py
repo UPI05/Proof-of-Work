@@ -1,5 +1,4 @@
 import json
-import time
 
 class Transaction:
     def __init__(self):
@@ -7,12 +6,13 @@ class Transaction:
         self.__to = ""
         self.__data = ""
         self.__signature = ""
-        self.__timestamp = time.time()
+        self.__timestamp = 0
 
-    def create(self, from_addr, to_addr, data): # hex str, hex str, str
+    def create(self, from_addr, to_addr, data, timestamp): # hex str, hex str, str
         self.__from = from_addr
         self.__to = to_addr
         self.__data = data
+        self.__timestamp = timestamp
 
     def getTxs(self):
         return json.dumps({
@@ -27,3 +27,8 @@ class Transaction:
 
     def getSignature(self):
         return self.__signature
+    
+    # Kiểm tra format của txs. Khác với verify bên wallet (kiểm tra mật mã).
+    def validateTxs():
+        # is spent?
+        pass
