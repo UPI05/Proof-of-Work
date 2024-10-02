@@ -34,4 +34,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.8.0/24  # Dải IP cho mạng
+        - subnet: 192.168.8.240/28  # Dải IP cho mạng

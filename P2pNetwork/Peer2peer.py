@@ -1,31 +1,26 @@
 import socket
 import threading
 import ipaddress
-from Blockchain.TransactionPool import TransactionPool
+from P2pNetwork.TransactionPool import TransactionPool
 
-class PeerToPeer:
-    def __init__(self, host='0.0.0.0', subnet='192.168.8.240/28', port=5678):
+class PeerToPeer(TransactionPool):
+    def __init__(self, max_hosts=5, host='0.0.0.0', subnet='192.168.8.240/28', port=5678):
+        super().__init__()
         self.__host = host
         self.__port = port
         self.__sockets = []
         self.__lock = threading.Lock()
-        self.__max_hosts = 5
+        self.__max_hosts = max_hosts
         self.__subnet = subnet
             
-        # Transactionpool
-        self.__txs_pool = TransactionPool()
-
         # Start listening thread
-        self.listener_thread = threading.Thread(target=self.listen_for_connections)
+        self.listener_thread = threading.Thread(target=self._listen_for_connections)
         self.listener_thread.start()
 
     def getSockets(self):
         return self.__sockets
-    
-    def getTxsPool(self):
-        return self.__txs_pool.getAll()
-    
-    def get_local_ip(self):
+            
+    def _get_local_ip(self):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))  # Kết nối đến Google DNS
@@ -35,7 +30,7 @@ class PeerToPeer:
 
         return local_ip
 
-    def listen_for_connections(self):
+    def _listen_for_connections(self):
         conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         conn.bind((self.__host, self.__port))
         conn.listen(self.__max_hosts)
@@ -47,22 +42,26 @@ class PeerToPeer:
         
             self.__lock.acquire()
             try:
-                if not self.is_connected(con):
+                if not self._is_connected(con):
                     print(f"Connection from: {con}")
 
                     self.__sockets.append(con)
 
                     # Start a new thread to listen for messages from this peer
-                    threading.Thread(target=self.handle_peer, args=(con,)).start()
+                    threading.Thread(target=self._handle_peer, args=(con,)).start()
             finally:
                 self.__lock.release()
 
-    def handle_peer(self, conn):
+    def _handle_peer(self, conn):
         while True:
             try:
                 message = conn.recv(1024).decode()
                 if message:
-                    self.__txs_pool.addTxs(message)
+                    if 'producer' in message:
+                        print(message)
+                        print('block')
+                    else:
+                        self.addTxs(message) # To pool
                 else:
                     break
             except:
@@ -73,7 +72,10 @@ class PeerToPeer:
         self.__sockets.remove(conn)
         self.__lock.release()
 
-    def is_connected(self, conn):
+
+    # Vì khi node chạy lên, nó vừa nghe vừa connect nên sẽ có 2 connections cho mỗi cặp node, do đó để tối ưu thì cần check để
+    # giảm bớt 1 connection, tuy nhiên đang bị lỗi vì xử lý đa luồng nên bị mất connection
+    def _is_connected(self, conn):
         target_ipA = conn.getpeername()[0]
         target_ipB = conn.getsockname()[0]
 
@@ -91,7 +93,7 @@ class PeerToPeer:
         return False
 
 
-    def broadcast(self, message):
+    def _broadcast(self, message):
         self.__lock.acquire()
         for peer in self.__sockets:
             try:
@@ -103,7 +105,7 @@ class PeerToPeer:
 
     def connect_to_peers(self):
         net = ipaddress.ip_network(self.__subnet)
-        myIP = self.get_local_ip()
+        myIP = self._get_local_ip()
 
         for ip in net:
             if str(ip) == myIP:
@@ -115,12 +117,12 @@ class PeerToPeer:
 
                 self.__lock.acquire()
                 try:
-                    if not self.is_connected(conn):
+                    if not self._is_connected(conn):
                         print("Connected to: ", conn)
                         self.__sockets.append(conn)
 
                         # Start a thread to listen for messages from this peer
-                        threading.Thread(target=self.handle_peer, args=(conn,)).start()
+                        threading.Thread(target=self._handle_peer, args=(conn,)).start()
                 finally:
                     self.__lock.release()
                 
@@ -129,4 +131,4 @@ class PeerToPeer:
                 continue
         
     def send_message(self, message):
-        self.broadcast(message)
+        self._broadcast(message)

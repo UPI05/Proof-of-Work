@@ -10,10 +10,10 @@ class EdDSA:
         self.__curve = "ed25519"
         self.__sig_scheme = "rfc8032"
 
-    def _genKey(self):
+    def genKey(self):
         self.__key = ECC.generate(curve=self.__curve)
 
-    def _saveKey(self, path="privatekey.pem", pwd=None):
+    def saveKey(self, path="privatekey.pem", pwd=None):
         if pwd is None:
             pwd = self.__default_passphrase
 
@@ -26,7 +26,7 @@ class EdDSA:
             f.write(data)
             f.close()
 
-    def _loadKey(self, path="privatekey.pem", pwd=None):
+    def loadKey(self, path="privatekey.pem", pwd=None):
         if pwd is None:
             pwd = self.__default_passphrase
             
@@ -35,7 +35,7 @@ class EdDSA:
         f.close()
         self.__key = ECC.import_key(pemKey, pwd)
 
-    def _getPublicKey(self):
+    def getPublicKey(self):
         return hex(bytes_to_long(self.__key.public_key().export_key(format='raw')))
     
     def setPublicKey(self, pkey):
@@ -45,7 +45,7 @@ class EdDSA:
         signer = eddsa.new(self.__key, self.__sig_scheme)
         return hex(bytes_to_long(signer.sign(message.encode())))
 
-    def verify(self, message, signature):
+    def _verify(self, message, signature):
         verifier = eddsa.new(self.__key, self.__sig_scheme)
         try:
             signature = long_to_bytes(int(signature, 16))
