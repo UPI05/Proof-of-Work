@@ -29,6 +29,76 @@ services:
     ports:
       - "8003:5679"
 
+  node4:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      my_network:
+        ipv4_address: 192.168.8.245  # Địa chỉ IP cho node4
+    ports:
+      - "8004:5679"
+
+  node5:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      my_network:
+        ipv4_address: 192.168.8.246  # Địa chỉ IP cho node5
+    ports:
+      - "8005:5679"
+  
+  node6:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      my_network:
+        ipv4_address: 192.168.8.247  # Địa chỉ IP cho node6
+    ports:
+      - "8006:5679"
+
+  node7:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      my_network:
+        ipv4_address: 192.168.8.248  # Địa chỉ IP cho node7
+    ports:
+      - "8007:5679"
+
+  node8:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      my_network:
+        ipv4_address: 192.168.8.249  # Địa chỉ IP cho node8
+    ports:
+      - "8008:5679"
+
+  node9:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      my_network:
+        ipv4_address: 192.168.8.250  # Địa chỉ IP cho node9
+    ports:
+      - "8009:5679"
+
+  node10:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      my_network:
+        ipv4_address: 192.168.8.251  # Địa chỉ IP cho node10
+    ports:
+      - "8010:5679"
+
 networks:
   my_network:
     driver: bridge

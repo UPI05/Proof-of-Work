@@ -71,19 +71,11 @@ class PeerToPeer(TransactionPool):
 
                     else:
                         self.addTxs(message) # To pool
-                else:
-                    break
+                        
             except:
-                break
-        
-        conn.close()
-        self.__lock.acquire()
-        self.__sockets.remove(conn)
-        self.__lock.release()
+                print('Err reading msg.')
 
 
-    # Vì khi node chạy lên, nó vừa nghe vừa connect nên sẽ có 2 connections cho mỗi cặp node, do đó để tối ưu thì cần check để
-    # giảm bớt 1 connection, tuy nhiên đang bị lỗi vì xử lý đa luồng nên bị mất connection
     def _is_connected(self, conn):
         target_ipA = conn.getpeername()[0]
         target_ipB = conn.getsockname()[0]
