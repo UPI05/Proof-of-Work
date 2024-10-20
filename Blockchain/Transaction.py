@@ -2,6 +2,7 @@ import json
 
 class Transaction:
     def __init__(self):
+        self.__msg_type = "txs"
         self.__from = ""
         self.__to = ""
         self.__data = ""
@@ -14,13 +15,24 @@ class Transaction:
         self.__data = data
         self.__timestamp = timestamp
 
+    def createFromStr(self, str):
+        txs = json.loads(str)
+        self.__from = txs['from']
+        self.__to = txs['to']
+        self.__data = txs['data']
+        self.__timestamp = txs['time']
+
     def getTxs(self):
         return json.dumps({
+            "msg_type": self.__msg_type, 
             "from": self.__from,
             "to": self.__to,
             "data": self.__data,
             "time": self.__timestamp
         })
+    
+    def getProducer(self):
+        return self.__from
 
     def setSignature(self, sig):
         self.__signature = sig

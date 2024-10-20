@@ -5,9 +5,11 @@ services:
       dockerfile: Dockerfile
     networks:
       my_network:
-        ipv4_address: 192.168.8.242  # Địa chỉ IP cho node1
+        ipv4_address: 192.168.8.226  # Địa chỉ IP cho node1
     ports:
       - "8001:5679"
+    environment:
+      - NODE=node1
 
   node2:
     build:
@@ -15,9 +17,11 @@ services:
       dockerfile: Dockerfile
     networks:
       my_network:
-        ipv4_address: 192.168.8.243  # Địa chỉ IP cho node2
+        ipv4_address: 192.168.8.227  # Địa chỉ IP cho node2
     ports:
       - "8002:5679"
+    environment:
+      - NODE=node2
 
   node3:
     build:
@@ -25,83 +29,220 @@ services:
       dockerfile: Dockerfile
     networks:
       my_network:
-        ipv4_address: 192.168.8.244  # Địa chỉ IP cho node3
+        ipv4_address: 192.168.8.228  # Địa chỉ IP cho node3
     ports:
       - "8003:5679"
+    environment:
+      - NODE=node3
 
-  node4:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    networks:
-      my_network:
-        ipv4_address: 192.168.8.245  # Địa chỉ IP cho node4
-    ports:
-      - "8004:5679"
+  # node4:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.229  # Địa chỉ IP cho node4
+  #   ports:
+  #     - "8004:5679"
+  #   environment:
+  #     - NODE=node4
 
-  node5:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    networks:
-      my_network:
-        ipv4_address: 192.168.8.246  # Địa chỉ IP cho node5
-    ports:
-      - "8005:5679"
+  # node5:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.230  # Địa chỉ IP cho node5
+  #   ports:
+  #     - "8005:5679"
+  #   environment:
+  #     - NODE=node5
   
-  node6:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    networks:
-      my_network:
-        ipv4_address: 192.168.8.247  # Địa chỉ IP cho node6
-    ports:
-      - "8006:5679"
+  # node6:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.231  # Địa chỉ IP cho node6
+  #   ports:
+  #     - "8006:5679"
+  #   environment:
+  #     - NODE=node6
 
-  node7:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    networks:
-      my_network:
-        ipv4_address: 192.168.8.248  # Địa chỉ IP cho node7
-    ports:
-      - "8007:5679"
+  # node7:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.232  # Địa chỉ IP cho node7
+  #   ports:
+  #     - "8007:5679"
+  #   environment:
+  #     - NODE=node7
 
-  node8:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    networks:
-      my_network:
-        ipv4_address: 192.168.8.249  # Địa chỉ IP cho node8
-    ports:
-      - "8008:5679"
+  # node8:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.233  # Địa chỉ IP cho node8
+  #   ports:
+  #     - "8008:5679"
+  #   environment:
+  #     - NODE=node8
 
-  node9:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    networks:
-      my_network:
-        ipv4_address: 192.168.8.250  # Địa chỉ IP cho node9
-    ports:
-      - "8009:5679"
+  # node9:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.234  # Địa chỉ IP cho node9
+  #   ports:
+  #     - "8009:5679"
+  #   environment:
+  #     - NODE=node9
 
-  node10:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    networks:
-      my_network:
-        ipv4_address: 192.168.8.251  # Địa chỉ IP cho node10
-    ports:
-      - "8010:5679"
+  # node10:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.235  # Địa chỉ IP cho node10
+  #   ports:
+  #     - "8010:5679"
+  #   environment:
+  #     - NODE=node10
+  
+  # node11:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.236  # Địa chỉ IP cho node11
+  #   ports:
+  #     - "8011:5679"
+  #   environment:
+  #     - NODE=node11
 
+  # node12:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.237  # Địa chỉ IP cho node12
+  #   ports:
+  #     - "8012:5679"
+  #   environment:
+  #     - NODE=node12
+
+  # node13:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.238  # Địa chỉ IP cho node13
+  #   ports:
+  #     - "8013:5679"
+  #   environment:
+  #     - NODE=node13
+
+  # node14:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.239  # Địa chỉ IP cho node14
+  #   ports:
+  #     - "8014:5679"
+  #   environment:
+  #     - NODE=node14
+
+  # node15:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.240  # Địa chỉ IP cho node15
+  #   ports:
+  #     - "8015:5679"
+  #   environment:
+  #     - NODE=node15
+  
+  # node16:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.241  # Địa chỉ IP cho node16
+  #   ports:
+  #     - "8016:5679"
+  #   environment:
+  #     - NODE=node16
+
+  # node17:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.242  # Địa chỉ IP cho node17
+  #   ports:
+  #     - "8017:5679"
+  #   environment:
+  #     - NODE=node17
+
+  # node18:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.243  # Địa chỉ IP cho node18
+  #   ports:
+  #     - "8018:5679"
+  #   environment:
+  #     - NODE=node18
+
+  # node19:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.244  # Địa chỉ IP cho node19
+  #   ports:
+  #     - "8019:5679"
+  #   environment:
+  #     - NODE=node19
+
+  # node20:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     my_network:
+  #       ipv4_address: 192.168.8.245  # Địa chỉ IP cho node20
+  #   ports:
+  #     - "8020:5679"
+  #   environment:
+  #     - NODE=node20
+  
+  
 networks:
   my_network:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.8.240/28  # Dải IP cho mạng
+        - subnet: 192.168.8.224/27  # Dải IP cho mạng

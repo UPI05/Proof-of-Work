@@ -1,23 +1,65 @@
 import socket
 import threading
 import ipaddress
+import json
 from P2pNetwork.TransactionPool import TransactionPool
+from Wallet.Wallet import Wallet
+from Blockchain.Block import Block
 
 class PeerToPeer(TransactionPool):
-    def __init__(self, max_hosts=5, chain=None, host='0.0.0.0', subnet='192.168.8.240/28', port=5678):
-        super().__init__()
+    def __init__(self, difficulty, lock, pkey, max_hosts=5, chain=None, host='0.0.0.0', subnet='192.168.8.240/28', port=5678):
+        super().__init__(lock)
         self.__host = host
         self.__port = port
         self.__sockets = []
-        self.__lock = threading.Lock()
+        self.__lock = lock
         self.__max_hosts = max_hosts
         self.__subnet = subnet
+        self.__shard_config = {"shard_1": []} # Only 1 shard at the beginning
+        self.__pkey = pkey
 
-        self.__chain = chain
-            
+        self.__difficulty = difficulty
+
+        tmp_wallet = Wallet()
+        for node in range(max_hosts):
+            tmp_wallet.loadKey(f'keys/node{node + 1}.pem')
+            self.__shard_config["shard_1"].append(tmp_wallet.getPublicKey())
+
+        self.__chain = chain # Chain at current sharding epoch
+        self.__chains = [] # Chains of previous sharding epochs 
+
         # Start listening thread
         self.listener_thread = threading.Thread(target=self._listen_for_connections)
         self.listener_thread.start()
+
+    def getChainAtShardEpochX(self, x):
+        if x >= len(self.__chains):
+            return "err"
+        return self.__chains[x]
+    
+    def getMyShardID(self):
+        for shard_id, pkeys in self.__shard_config.items():
+            if self.__pkey in pkeys:
+                return shard_id
+            
+        return 'known_shard'
+
+    def setShardConfig(self, shard_config):
+        self.__shard_config = shard_config
+        
+        # Store current chain and reset current chain
+        self.__chains.append(self.__chain.getBlockChain())
+        self.__chain.resetChain(self.getMyShardID())
+
+    def shameShard(self, pka, pkb):
+        for shard_id, pkeys in self.__shard_config.items():
+            if pka in pkeys and pkb in pkeys:
+                return True
+        
+        return False
+    
+    def getShardConfig(self):
+        return self.__shard_config
 
     def getSockets(self):
         return self.__sockets
@@ -57,23 +99,55 @@ class PeerToPeer(TransactionPool):
     def _handle_peer(self, conn):
         while True:
             try:
-                message = conn.recv(10000).decode()
-                if message:
-                    if 'producer' in message:
-                        # Verify signature ...
-                        # code here
-                        self.__lock.acquire()
-                        if self.__chain.addBlock(message):
-                            print('Block received!')
-                            # We also need to delete these txs from txs pool
+                msg = conn.recv(10000).decode()
+                if msg and "setShardConfig" in msg:
+                    print('Reconfiguring shards...')
+                    message = json.loads(msg)
+                    del message['setShardConfig']
+                    self.setShardConfig(message)
+                    
+                    continue
 
-                        self.__lock.release()
+                if msg:
+                    message = json.loads(msg)
+                    msg_type = json.loads(message['data'])['msg_type']
+                    tmp_wallet = Wallet()
 
-                    else:
-                        self.addTxs(message) # To pool
-                        
-            except:
-                print('Err reading msg.')
+                    print('txs received!')
+
+                    if msg_type == 'txs':
+                        tmp_wallet.setPublicKey(json.loads(message['data'])['from'])
+                        if self.shameShard(json.loads(message['data'])['from'], self.__pkey) and (tmp_wallet._verify(message['data'], message['sig'])) and not self._findTxs(msg):
+                            self.addTxs(msg) # To pool
+                            print('txs accepted!')
+                            
+                    if msg_type == 'block':
+                        block = Block()
+                        block.createFromStr(message['data'])
+                        block.setSignature(message['sig'])
+                        tmp_wallet.setPublicKey(block.getProducer())
+
+                        print('block received!')
+
+                        if self.shameShard(json.loads(message['data'])['producer'], self.__pkey) and tmp_wallet.verifyBlock(block):
+                            # Check difficulty
+                            if block.getHash()[:self.__difficulty] != '0'*self.__difficulty:
+                                continue
+
+                            # Check num of txs
+                            # ...
+
+                            #
+                            if self.__chain.addBlock(msg):
+                                print('block accepted!')
+                                for txs in block.getTxsList():
+                                    self.removeTxs(txs) # high cost
+                        else:
+                            print('block failed!')
+
+
+            except Exception as e:
+                print(f'Err reading msg. {e}')
 
 
     def _is_connected(self, conn):
@@ -98,7 +172,6 @@ class PeerToPeer(TransactionPool):
         self.__lock.acquire()
         for peer in self.__sockets:
             try:
-                print('sent!!!')
                 peer.send(message.encode())
             except:
                 pass
@@ -128,7 +201,6 @@ class PeerToPeer(TransactionPool):
                     self.__lock.release()
                 
             except Exception as e:
-                #print('ip: ', ip, ' - err', e)
                 continue
         
     def send_message(self, message):

@@ -4,6 +4,7 @@ import hashlib
 
 class Block():
     def __init__(self):
+        self.__msg_type = "block"
         self.__txs_list = []
         self.__preHash = ""
         self.__nOnce = 0
@@ -18,11 +19,20 @@ class Block():
         self.__nOnce = nOnce
         self.__timestamp = timestamp
 
-    def genesis(self):
-        self.create(['0x0123'], '0x4567', '0x89ab', '0xcdef', '0x0000')
+    def createFromStr(self, str):
+        block = json.loads(str)
+        self.__txs_list = block['txs_list']
+        self.__preHash = block['preHash']
+        self.__producer = block['producer']
+        self.__nOnce = block['nOnce']
+        self.__timestamp = block['timestamp']
+
+    def genesis(self, shard_id=0):
+        self.create(['0x0000'], str(shard_id), '0x0000', '0x0000', '0x0000')
 
     def getBlock(self):
         return json.dumps({
+            "msg_type": self.__msg_type,
             "timestamp": self.__timestamp,
             "preHash": self.__preHash,
             "txs_list": self.__txs_list,
@@ -30,10 +40,16 @@ class Block():
             "nOnce": self.__nOnce
         })
     
+    def getTxsList(self):
+        return self.__txs_list
+    
     def getHash(self):
         blockStr = self.getBlock()
         hash = hashlib.sha256(blockStr.encode())
         return hash.hexdigest()
+    
+    def getProducer(self):
+        return self.__producer
     
     def setSignature(self, sig):
         self.__signature = sig

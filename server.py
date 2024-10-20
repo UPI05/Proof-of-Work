@@ -1,11 +1,14 @@
 from flask import Flask, jsonify, request
 import time
 import json
+import os
 from Wallet.Wallet import Wallet
 from P2pNetwork.Peer2peer import PeerToPeer
 from Blockchain.Blockchain import Blockchain
 import threading
 
+
+lock = threading.Lock()
 
 ### API ###
 app = Flask(__name__)
@@ -50,54 +53,78 @@ def getTxsPool():
         "txs_list": res
     })
 
-@app.route('/triggerMinning', methods=['GET'])
-def triggerMinning():
-    # Mine a new block
-    max_txs_per_block = 5
-    status, txs_list = p2p.getTxsList(max_txs_per_block)
-    preHash = chain.getLastBlockHash()
+def triggerMinning(dif=4, max_txs_per_block=5):
+    while True:
+        status, txs_list = p2p.getTxsList(max_txs_per_block)
+        preHash = chain.getLastBlockHash()
 
-    if not status:
-            return jsonify({'status': 500, 'msg': 'Txs not enough.'})
-    
-    for nOnce in range(0, 10**8): # Maybe larger
-        block = wallet.createBlock(preHash, txs_list, nOnce)        
-        hash = block.getHash()
-        print(hash)
-        if (hash[:4] == '0'*4): # Difficulty with 2 0s
-            print('Found')
-            # Save to blockchain before broadcast
-            lock = threading.Lock()
-            block_str = json.dumps({"data": block.getBlock(), "producer_sig": block.getSignature()})
-            
-            lock.acquire()
-            if chain.addBlock(block_str):
-                p2p.send_message(block_str)
-            
-            lock.release()
+        if not status: # not enough txs
+                continue
+        
+        for nOnce in range(0, 10**8): # Maybe larger
+            if preHash != chain.getLastBlockHash(): # a new block received!
+                break
 
-            break
-    
-    return jsonify({'status': 200})
+            block = wallet.createBlock(preHash, txs_list, nOnce)
+            hash = block.getHash()
+            print(hash)
+            if (hash[:dif] == '0'*dif): # Difficulty with 0s
+                print('Found')
+                # Save to blockchain before broadcast
+                block_str = json.dumps({"data": block.getBlock(), "sig": block.getSignature()})
+                
+                if chain.addBlock(block_str):
+                    print('block sent!')
+                    p2p.send_message(block_str)
+                    for txs in block.getTxsList():
+                        p2p.removeTxs(txs)
+                break
+
+
+@app.route('/getShardConfig', methods=['GET'])
+def getShardConfig():
+    return jsonify(p2p.getShardConfig())
+
+@app.route('/setShardConfig', methods=['POST'])
+def setShardConfig():
+    print('Reconfiguring shards...')
+    data = request.get_json()
+    p2p.send_message(json.dumps(data))
+    del data['setShardConfig']
+    p2p.setShardConfig(data)
+    return jsonify({"status": 200})
+
+@app.route('/getChainAtShardEpochX', methods=['GET'])
+def getChainAtShardEpochX():
+    epoch = int(request.args.get('epoch'))
+    return jsonify(p2p.getChainAtShardEpochX(epoch))
+
 
 ### MAIN ###
 if __name__ == "__main__":
+
+    difficulty = 4 # num of 0s
+    max_hosts = 3 # num of nodes
+
     # Blockchain
-    chain = Blockchain()
+    chain = Blockchain(lock=lock)
 
     # Wallet
     wallet = Wallet()
-    wallet.loadKey() # Or you can genKey()
+    node_id = os.getenv('NODE')
+    print(f'NODE: {node_id}')
+    wallet.loadKey(f'keys/{node_id}.pem')
+    print(f'PKey: {wallet.getPublicKey()}')
 
     # P2p network
-    p2p = PeerToPeer(max_hosts=5, chain=chain)
+    p2p = PeerToPeer(difficulty=difficulty, lock=lock, pkey=wallet.getPublicKey(), max_hosts=max_hosts, chain=chain, subnet='192.168.8.224/27')
     time.sleep(1)  # Ensure the listener is ready
     p2p.connect_to_peers()
+
+    # Minning
+    minning_thread = threading.Thread(target=triggerMinning, args=(difficulty, 6,))
+    minning_thread.start()
 
     # API server
     app.run(debug=False, port=5679, host='0.0.0.0')
 
-
-    # Cleanup and close all connections
-    #for peer in p2p.sockets:
-    #    peer.close()

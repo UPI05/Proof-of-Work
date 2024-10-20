@@ -2,6 +2,7 @@ from Wallet.SignatureScheme import EdDSA
 from Blockchain.Transaction import Transaction
 from Blockchain.Block import Block
 import time
+import json
 
 class Wallet(EdDSA):
     def createTxs(self, to_addr, data):
@@ -19,5 +20,14 @@ class Wallet(EdDSA):
         block.setSignature(self._sign(block.getBlock()))
         return block
     
-    def verifyBlock(self):
-        pass
+    def verifyBlock(self, block):
+        tmp_wallet = Wallet()
+        for txs_str in block.getTxsList():
+            txs = Transaction()
+            txs.createFromStr(json.loads(txs_str)['data'])
+            txs.setSignature(json.loads(txs_str)['sig'])
+            tmp_wallet.setPublicKey(txs.getProducer())
+            if not tmp_wallet.verifyTxs(txs):
+                return False
+
+        return self._verify(block.getBlock(), block.getSignature())
